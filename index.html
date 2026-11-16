@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dry Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Dry Run: a game table. Aubergine felt, bone-paper cards, marigold dice.
+     Layout: home = builder beside a cartridge shelf; play = stats rail beside the event card, stacked on phones. */
+  --table:#1B1530;
+  --raised:#2A2148;
+  --raised-2:#352A5A;
+  --paper:#F4EDE1;
+  --paper-hi:#FFFCF6;
+  --ink:#1A1326;
+  --ink-soft:#4B4163;
+  --text:#EFE9FA;
+  --muted:#ABA2C8;
+  --accent:#FFB547;
+  --good:#4FD69C;
+  --bad:#FF6B6B;
+  --warn:#FF9A4D;
+  --line:rgba(239,233,250,.14);
+  --dot:rgba(239,233,250,.06);
+  --shadow:#09070F;
+  --font-display:"Bungee","Arial Black",Impact,sans-serif;
+  --font-body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background-color:var(--table);background-image:radial-gradient(circle at 1px 1px,var(--dot) 1px,transparent 0);background-size:24px 24px;color:var(--text);font:400 16px/1.5 var(--font-body);-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:400}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button[disabled]{cursor:not-allowed;opacity:.55}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:1140px;margin:0 auto;padding:20px 16px 56px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.eyebrow{font:400 12px/1 var(--font-display);letter-spacing:.08em;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.eyebrow.ink{color:var(--ink-soft)}
+
+/* paper + buttons */
+.paper{background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:16px;box-shadow:6px 6px 0 var(--shadow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 20px;border-radius:12px;border:2px solid var(--ink);font-weight:700;font-size:16px;background:var(--accent);color:var(--ink);box-shadow:4px 4px 0 var(--shadow);transition:transform .08s ease,box-shadow .08s ease;text-decoration:none}
+.btn:hover:not([disabled]){transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--shadow)}
+.btn:active:not([disabled]){transform:translate(3px,3px);box-shadow:1px 1px 0 var(--shadow)}
+.paper .btn{box-shadow:4px 4px 0 var(--ink)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line);box-shadow:none}
+.btn.ghost:hover{border-color:var(--accent)}
+.btn.wide{width:100%}
+.err{color:var(--bad);font-weight:600}
+.paper .err{color:#B42B2B}
+
+/* segmented controls */
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--paper-hi)}
+.seg button{border:0;background:transparent;padding:6px 12px;font-weight:600;font-size:14px;color:var(--ink);min-height:38px}
+.seg button+button{border-left:2px solid var(--ink)}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--accent)}
+.seg.dark{border-color:var(--line);background:var(--table)}
+.seg.dark button{color:var(--text)}
+.seg.dark button+button{border-left-color:var(--line)}
+.seg.dark button[aria-checked="true"]{background:var(--accent);color:var(--ink)}
+
+/* d20 */
+.d-face{fill:var(--accent);stroke:var(--ink);stroke-width:3.5;stroke-linejoin:round}
+.d-inner{fill:#FFD08A;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round}
+.d-lines{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linecap:round}
+.mini-die{position:relative;width:52px;height:52px;flex:none;display:inline-block}
+.mini-die svg{width:100%;height:100%;display:block}
+.mini-die b{position:absolute;left:0;right:0;top:56%;transform:translateY(-50%);text-align:center;font:400 15px/1 var(--font-display);color:var(--ink)}
+
+/* stamps */
+.stamp{display:inline-block;font:400 15px/1 var(--font-display);letter-spacing:.06em;padding:7px 10px 6px;border:3px solid currentColor;border-radius:8px;transform:rotate(-4deg)}
+.stamp.t-breakthrough{color:var(--ink);background:var(--good);border-color:var(--good)}
+.stamp.t-success{color:var(--good)}
+.stamp.t-mixed{color:var(--accent)}
+.stamp.t-setback{color:var(--warn)}
+.stamp.t-disaster{color:var(--ink);background:var(--bad);border-color:var(--bad)}
+
+/* ---------- HOME ---------- */
+.home{display:grid;gap:32px;grid-template-columns:minmax(0,1fr);padding-top:28px}
+@media (min-width:960px){.home{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:44px;align-items:start;padding-top:52px}}
+.logo{font:400 clamp(66px,18vw,136px)/.84 var(--font-display);color:var(--paper);display:grid;margin:0}
+.logo .l1{display:flex;align-items:center;gap:.12em}
+.logo .l1 svg{width:.62em;height:.62em;transform:rotate(14deg)}
+.logo .run{color:var(--accent);padding-left:.55em}
+.tagline{font:600 clamp(21px,4.8vw,27px)/1.25 var(--font-body);margin:22px 0 8px}
+.sub{color:var(--muted);max-width:54ch}
+.builder{padding:18px;display:grid;gap:14px;margin-top:24px}
+.field-label{font:400 14px/1.2 var(--font-display);letter-spacing:.04em}
+#req{width:100%;font:500 18px/1.4 var(--font-body);color:var(--ink);background:var(--paper-hi);border:2px solid var(--ink);border-radius:10px;padding:12px 14px;resize:vertical;min-height:88px}
+#req::placeholder{color:#8C83A3}
+.opts{display:grid;gap:10px}
+.optrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.optrow > span{font-weight:600;font-size:14px;color:var(--ink-soft)}
+.ai-note{font-size:13px;color:var(--ink-soft)}
+.continue{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;text-align:left;width:100%;margin-top:22px;background:var(--raised);border:2px solid var(--accent);border-radius:14px;padding:14px 16px;color:var(--text)}
+.continue .c-eye{font:400 11px/1 var(--font-display);letter-spacing:.08em;color:var(--accent)}
+.continue b{font-size:18px;grid-column:1}
+.continue span.c-meta{color:var(--muted);font-size:14px;grid-column:1}
+.continue .c-arrow{grid-column:2;grid-row:1 / span 3;font:400 24px var(--font-display);color:var(--accent)}
+.shelf-title{font:400 14px/1 var(--font-display);letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
+.carts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cart{text-align:left;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;display:flex;flex-direction:column;transition:transform .12s ease,border-color .12s ease;color:var(--text)}
+.cart:hover{transform:translateY(-2px);border-color:var(--tag)}
+.cart.sel{border-color:var(--tag);box-shadow:0 0 0 2px var(--tag)}
+.cart .strip{display:flex;justify-content:space-between;align-items:center;gap:6px;background:var(--tag);color:var(--ink);padding:6px 10px;font:700 11px/1.2 var(--font-body);letter-spacing:.07em;text-transform:uppercase}
+.cart .cbody{padding:10px 12px 14px;display:grid;gap:5px}
+.cart b{font:400 15px/1.15 var(--font-display)}
+.cart small{color:var(--muted);font-size:13px;line-height:1.35}
+.how{list-style:none;margin:26px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+.how li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;font-size:14px;color:var(--muted)}
+.how li b{display:block;color:var(--text);font-size:15px}
+.how .n{font:400 22px/1 var(--font-display);color:var(--accent)}
+.demo-link{margin-top:22px;width:100%;text-align:left;background:transparent;border:2px dashed var(--line);border-radius:12px;padding:14px 16px;color:var(--text);display:flex;gap:14px;align-items:center}
+.demo-link:hover{border-color:var(--accent)}
+.demo-link .mini-die{width:40px;height:40px}
+.demo-link small{display:block;color:var(--muted)}
+
+/* ---------- LOADING ---------- */
+.loading{min-height:100%;display:grid;align-content:center;padding-top:40px}
+.load-card{max-width:640px;display:grid;gap:16px}
+.spin-die{width:84px;height:84px}
+.spin-die svg{width:100%;height:100%;animation:spin 2.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-title{font:400 clamp(28px,7vw,48px)/1.05 var(--font-display);color:var(--paper)}
+.load-premise{color:var(--muted);max-width:60ch;min-height:3em}
+.steps{list-style:none;padding:0;margin:4px 0;display:grid;gap:8px}
+.steps li{display:flex;gap:10px;align-items:center;color:var(--muted)}
+.steps li::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
+.steps li.active{color:var(--text)}
+.steps li.active::before{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
+.steps li.done{color:var(--text)}
+.steps li.done::before{background:var(--good);border-color:var(--good)}
+.load-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.load-actions small{color:var(--muted)}
+
+/* ---------- PLAY ---------- */
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;padding:10px 16px;background:rgba(27,21,48,.95);border-bottom:1px solid var(--line)}
+.mini-logo{background:none;border:0;padding:6px 0;font:400 15px/1 var(--font-display);color:var(--paper);flex:none;text-align:left}
+.mini-logo span{color:var(--accent)}
+.gt{min-width:0;flex:1;display:grid;line-height:1.25}
+.gt b{font-weight:700}
+.gt span{font-size:12px;color:var(--muted)}
+.turnpill{flex:none;display:grid;justify-items:end;line-height:1;gap:3px}
+.turnpill span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.turnpill b{font:400 22px/1 var(--font-display);color:var(--accent);font-variant-numeric:tabular-nums}
+.turnpill small{font-size:13px;color:var(--muted)}
+.layout{display:grid;gap:14px;grid-template-columns:minmax(0,1fr);grid-template-areas:"stats" "goal" "stage" "cast" "log";max-width:1140px;margin:0 auto;padding:16px 16px 56px}
+@media (min-width:900px){.layout{grid-template-columns:340px minmax(0,1fr);grid-template-areas:"stats stage" "goal stage" "cast stage" "log stage";grid-template-rows:auto auto auto 1fr;gap:16px 24px;align-items:start;padding-top:22px}}
+.stats{grid-area:stats;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.goal{grid-area:goal}
+.stage{grid-area:stage;display:grid;gap:14px;align-content:start}
+.cast{grid-area:cast}
+.log{grid-area:log}
+.stat{position:relative;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;display:grid;gap:8px}
+.stat.warn{border-color:rgba(255,181,71,.55)}
+.stat.danger{border-color:var(--bad)}
+.st-top{display:flex;align-items:flex-start;gap:6px;font-size:13px;line-height:1.25;color:var(--muted)}
+.st-top .ic{margin-top:1px}
+.st-name{min-width:0}
+.st-name em{display:block;font-style:normal;font-size:11px;color:var(--muted);opacity:.8}
+.st-val{margin-left:auto;font:400 15px/1.1 var(--font-display);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:8px;border-radius:6px;background:rgba(239,233,250,.09);position:relative}
+.bar i{display:block;height:100%;border-radius:6px;background:var(--good);transition:width .9s cubic-bezier(.2,.8,.2,1);max-width:100%}
+.stat.warn .bar i{background:var(--accent)}
+.stat.danger .bar i{background:var(--bad)}
+.stat.neutral .bar i{background:#9C8CF0}
+.bar .fail{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1px;border-radius:2px;background:var(--bad);z-index:1}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-row .bar{flex:1}
+.delta{flex:none;font:400 11px/1 var(--font-display);padding:4px 6px;border-radius:6px;border:2px solid var(--ink);white-space:nowrap;animation:pop .6s cubic-bezier(.2,1.4,.4,1) both}
+.goal-top .right{display:flex;align-items:center;gap:8px}
+.delta.up{background:var(--good);color:var(--ink)}
+.delta.down{background:var(--bad);color:var(--ink)}
+@keyframes pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+.goal-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;position:relative}
+.goal-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.goal-pct{font:400 18px/1 var(--font-display);color:var(--accent)}
+.goal-card p{font-size:14px;line-height:1.4}
+.goal-card .bar{height:10px}
+.goal-card .bar i{background:var(--accent)}
+.brief{border:1px dashed var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:6px;color:var(--muted)}
+.brief p b{color:var(--text)}
+.event{padding:20px 20px 22px;display:grid;gap:10px}
+.ev-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ev-turn{font:400 12px/1 var(--font-display);letter-spacing:.08em;background:var(--accent);padding:6px 8px 5px;border-radius:6px;border:2px solid var(--ink)}
+.speaker{display:flex;align-items:center;gap:8px;line-height:1.2}
+.speaker b{display:block;font-size:14px}
+.speaker small{display:block;font-size:12px;color:var(--ink-soft)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--av);color:var(--ink);display:grid;place-items:center;font:700 12px/1 var(--font-body);border:2px solid var(--ink);flex:none}
+.ev-head{font:400 clamp(22px,5.6vw,30px)/1.1 var(--font-display)}
+.ev-body{font-size:17px;line-height:1.58;max-width:62ch}
+.moves{display:grid;gap:12px}
+.moves-label{font:400 12px/1 var(--font-display);letter-spacing:.08em;color:var(--muted);margin-top:4px}
+.choice{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;width:100%;text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:12px;padding:14px;box-shadow:4px 4px 0 var(--shadow);transition:transform .08s ease,box-shadow .08s ease}
+.choice:hover:not([disabled]){transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--shadow)}
+.choice:active:not([disabled]){transform:translate(3px,3px);box-shadow:1px 1px 0 var(--shadow)}
+.ckey{font:400 16px/1 var(--font-display);width:34px;height:34px;border-radius:8px;background:var(--ink);color:var(--accent);display:grid;place-items:center}
+.cmain{display:grid;gap:3px}
+.cmain b{font-size:17px;line-height:1.3}
+.cmain small{color:var(--ink-soft);font-size:14px;line-height:1.4}
+.risk{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:12px;font-weight:700;margin-top:6px}
+.pips{display:inline-flex;gap:3px}
+.pips i{width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;display:inline-block}
+.pips i.on{background:currentColor}
+.r-low{color:#18784E}
+.r-medium{color:#9A5B00}
+.r-high{color:#B42B2B}
+.risk .odds{color:var(--ink-soft);font-weight:600}
+.custom{border:2px dashed var(--line);border-radius:12px;padding:0 14px}
+.custom summary{padding:13px 0;cursor:pointer;font-weight:600;list-style:none}
+.custom summary::-webkit-details-marker{display:none}
+.custom summary::before{content:"+";display:inline-block;width:1.2em;color:var(--accent);font-family:var(--font-display)}
+.custom[open] summary::before{content:"–"}
+.custom-body{display:grid;gap:10px;padding-bottom:14px}
+.custom textarea{width:100%;background:var(--table);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;resize:vertical}
+.custom-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.custom-row small{color:var(--muted);font-size:13px;flex-basis:100%}
+.outcome{--tc:var(--accent);background:var(--raised);border:1px solid var(--line);border-left:6px solid var(--tc);border-radius:14px;padding:18px;display:grid;gap:12px}
+.outcome.t-breakthrough,.outcome.t-success{--tc:var(--good)}
+.outcome.t-setback{--tc:var(--warn)}
+.outcome.t-disaster{--tc:var(--bad)}
+.roll-row{display:flex;align-items:center;gap:14px}
+.roll-meta{display:block;color:var(--muted);font-size:13px;margin-top:8px}
+.chose{color:var(--muted);font-size:14px}
+.chose b{color:var(--text)}
+.o-text{font-size:17px;line-height:1.58}
+.effects{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.fx{display:inline-flex;gap:6px;align-items:baseline;padding:6px 10px;border-radius:999px;background:rgba(239,233,250,.06);border:1px solid var(--line);font-size:14px}
+.fx b{font:400 13px/1 var(--font-display)}
+.fx.up b{color:var(--good)}
+.fx.down b{color:var(--bad)}
+.fx small{color:var(--muted);font-size:12px}
+.lesson{border-top:1px dashed var(--line);padding-top:12px;line-height:1.5}
+.lesson b{font:400 11px/1 var(--font-display);letter-spacing:.06em;color:var(--accent);margin-right:8px}
+.end-flag{font:400 14px/1.3 var(--font-display);color:var(--paper);background:var(--table);border:1px solid var(--line);padding:10px 12px;border-radius:10px}
+.sim{display:flex;gap:10px;align-items:center;color:var(--muted)}
+.dots{display:inline-flex;gap:4px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1s infinite ease-in-out}
+.dots i:nth-child(2){animation-delay:.15s}
+.dots i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.row-btns{display:flex;flex-wrap:wrap;gap:10px}
+.rail-h{font:400 12px/1 var(--font-display);letter-spacing:.08em;color:var(--muted);margin:6px 0 10px}
+.cast-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.cast-list li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.cast-list b{font-size:14px}
+.cast-list .c-role{font-size:13px;color:var(--muted)}
+.cast-list small{display:block;font-size:13px;color:var(--muted);line-height:1.35;margin-top:2px}
+.log-d{border-top:1px solid var(--line);padding-top:6px}
+.log-d summary{cursor:pointer;padding:8px 0;font:400 12px/1 var(--font-display);letter-spacing:.08em;color:var(--muted);list-style:none;display:flex;justify-content:space-between}
+.log-d summary::-webkit-details-marker{display:none}
+.log-d summary span{color:var(--accent)}
+.log-list{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:10px}
+.log-list li{border-left:3px solid var(--tc,var(--accent));padding:2px 0 2px 10px;display:grid;gap:3px;font-size:13px}
+.log-list li.t-breakthrough,.log-list li.t-success{--tc:var(--good)}
+.log-list li.t-setback{--tc:var(--warn)}
+.log-list li.t-disaster{--tc:var(--bad)}
+.lg-top{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
+.lg-top em{font-style:normal;color:var(--tc,var(--accent));font-weight:700}
+.lg-move{color:var(--text);font-weight:600}
+.lg-out{color:var(--muted);line-height:1.4}
+.empty{color:var(--muted);font-size:13px}
+
+/* ---------- DICE OVERLAY ---------- */
+.dice-layer{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(9,7,15,.78);padding:16px}
+.dice-layer[hidden]{display:none}
+.dice-box{display:grid;justify-items:center;gap:16px;text-align:center}
+.die{position:relative;width:156px;height:156px}
+.die svg{width:100%;height:100%;display:block;filter:drop-shadow(6px 8px 0 rgba(0,0,0,.45))}
+.die .dnum{position:absolute;left:0;right:0;top:56%;transform:translateY(-50%);font:400 40px/1 var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.die.tumble{animation:tumble .95s cubic-bezier(.3,.7,.3,1)}
+@keyframes tumble{0%{transform:translate(-60px,-90px) rotate(-260deg) scale(.55)}55%{transform:translate(6px,10px) rotate(18deg) scale(1.06)}78%{transform:translate(-2px,-6px) rotate(-6deg) scale(.99)}100%{transform:none}}
+.dmeta{color:var(--muted);font-size:14px;min-height:1.4em}
+.dstamp{min-height:36px}
+.dstamp.show{animation:stampin .32s cubic-bezier(.2,1.4,.4,1) both;font-size:22px}
+@keyframes stampin{0%{opacity:0;transform:scale(1.9) rotate(-4deg)}100%{opacity:1;transform:scale(1) rotate(-4deg)}}
+.dhint{color:var(--muted);font-size:12px}
+
+/* ---------- END ---------- */
+.end{max-width:900px}
+.end-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.result-hero{padding:26px 0 6px;display:grid;gap:14px;justify-items:start}
+.stamp.big{font-size:clamp(26px,7vw,40px);padding:10px 16px 8px;border-width:4px}
+.result-hero h1{font:400 clamp(28px,7.5vw,50px)/1.04 var(--font-display);color:var(--paper)}
+.result-hero p{color:var(--muted);max-width:60ch}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:22px 0 14px}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:2px}
+.tile span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tile b{font:400 34px/1.1 var(--font-display);color:var(--accent);font-variant-numeric:tabular-nums}
+.tile small{color:var(--muted);font-size:12px}
+.end .stats{margin-bottom:22px}
+@media (min-width:700px){.end .stats{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}}
+.debrief{padding:22px;display:grid;gap:14px}
+.db-verdict{font:400 clamp(22px,5.4vw,32px)/1.1 var(--font-display)}
+.db-summary{font-size:17px;line-height:1.58;max-width:64ch}
+.db-pattern{font-size:15px;color:var(--ink-soft)}
+.db-pattern b,.db-next b{font:400 11px/1 var(--font-display);letter-spacing:.06em;color:var(--ink);margin-right:6px}
+.db-moves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.db-moves{grid-template-columns:minmax(0,1fr)}}
+.db-move{border:2px solid var(--ink);border-radius:10px;padding:12px;background:var(--paper-hi);display:grid;gap:4px}
+.db-move span{font:400 11px/1.2 var(--font-display);letter-spacing:.05em}
+.db-move.good span{color:#18784E}
+.db-move.bad span{color:#B42B2B}
+.db-move b{font-size:15px}
+.db-move p{font-size:14px;color:var(--ink-soft);line-height:1.45}
+.debrief h3{font:400 14px/1.2 var(--font-display);letter-spacing:.04em;margin-top:6px}
+.db-lessons{margin:0;padding-left:20px;display:grid;gap:8px;line-height:1.5}
+.plan{background:var(--ink);color:var(--paper);border-radius:12px;padding:16px 18px;display:grid;gap:10px}
+.plan h3{color:var(--accent);margin:0}
+.plan ol{margin:0;padding-left:22px;display:grid;gap:8px;line-height:1.5}
+.plan li::marker{font-family:var(--font-display);color:var(--accent)}
+.db-next{font-size:15px;color:var(--ink-soft)}
+.end-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.copied{color:var(--good);font-weight:600;align-self:center}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="dice" class="dice-layer" hidden role="status" aria-live="polite">
+  <div class="dice-box">
+    <div class="die" id="die">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="d-face" points="50,4 90,27 90,73 50,96 10,73 10,27"/><polygon class="d-inner" points="50,26 75,68 25,68"/><path class="d-lines" d="M50,4L50,26M90,27L50,26M10,27L50,26M90,27L75,68M90,73L75,68M50,96L75,68M50,96L25,68M10,73L25,68M10,27L25,68"/></svg>
+      <span class="dnum" id="dnum">20</span>
+    </div>
+    <div class="dmeta" id="dmeta">Rolling…</div>
+    <div class="dstamp" id="dstamp"></div>
+    <div class="dhint">Tap to skip</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ constants ============ */
+const KEY = "dryrun.v1";
+const D20 = '<polygon class="d-face" points="50,4 90,27 90,73 50,96 10,73 10,27"/><polygon class="d-inner" points="50,26 75,68 25,68"/><path class="d-lines" d="M50,4L50,26M90,27L50,26M10,27L50,26M90,27L75,68M90,73L75,68M50,96L75,68M50,96L25,68M10,73L25,68M10,27L25,68"/>';
+const ICONS = {
+  coin:'<circle cx="12" cy="12" r="9"/><path d="M14.6 9.2a2.6 2.4 0 0 0-5.2.3c0 2.9 5.2 1.9 5.2 5a2.6 2.4 0 0 1-5.2.3M12 5.6v1.3M12 17.1v1.3"/>',
+  people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16.2 14.2c2.8.2 4.8 2.4 4.8 5.3"/>',
+  heart:'<path d="M12 20s-7-4.4-9-8.6C1.7 8.6 3.6 5 7 5c2 0 3.3 1.1 5 3 1.7-1.9 3-3 5-3 3.4 0 5.3 3.6 4 6.4-2 4.2-9 8.6-9 8.6z"/>',
+  star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>',
+  chart:'<path d="M3 20h18M6 16v-5M11 16V6M16 16v-8"/>',
+  flame:'<path d="M12 21c-4 0-7-2.7-7-6.5 0-3.3 2.3-5.4 3.5-8 .9 2 2 3 3.2 3.5C12 7 12.5 4.6 14 3c.5 3 5 5.4 5 11.5 0 3.8-3 6.5-7 6.5z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4.5v1A3 3 0 0 0 7.5 10M16 6h3.5v1a3 3 0 0 1-3 3M12 13v4M8.5 21h7M9.5 17h5v4h-5z"/>',
+  smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.4 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7"/>'
+};
+const TAGS = { Business:"#FFB547", Sport:"#4FD69C", Career:"#FF8FA3", "Public sector":"#7CC4FF", Creator:"#E99BFF", Life:"#C3B4FF", Tech:"#5FE0E6" };
+const CARTS = [
+  {name:"Startup Manager", line:"Seed-stage founder with 12 months of runway", tag:"Business", icon:"coin", prompt:"Startup Manager: I'm a seed-stage founder with 12 months of runway, trying to find product-market fit"},
+  {name:"Football Manager", line:"Newly promoted club, fight to stay up", tag:"Sport", icon:"trophy", prompt:"Football Manager: manage a newly promoted Premier League club and avoid relegation"},
+  {name:"The Pay Rise", line:"Negotiate a raise with your manager and HR", tag:"Career", icon:"chart", prompt:"Asking my manager for a 15% pay rise, with HR and budget constraints in play"},
+  {name:"Restaurant Manager", line:"Open a 40-cover bistro on a busy high street", tag:"Business", icon:"flame", prompt:"Restaurant Manager: open and run a 40-cover bistro on a busy London high street"},
+  {name:"Winter Crisis", line:"Keep an A&E department running through January", tag:"Public sector", icon:"heart", prompt:"Run a hospital A&E department through a January winter crisis, with bed shortages and staff sickness"},
+  {name:"Launch a Podcast", line:"Grow a new show to 10,000 listeners", tag:"Creator", icon:"bolt", prompt:"Launch a new podcast and grow it to 10,000 listeners per episode"},
+  {name:"New City", line:"A flat, friends and a job in six months", tag:"Life", icon:"people", prompt:"Move to a new city alone and build a life there: find a flat, friends and a job within six months"},
+  {name:"Ship the App", line:"Get through App Store review before launch day", tag:"Tech", icon:"clock", prompt:"Ship a mobile app to the App Store before a fixed launch date with a team of three"}
+];
+const DIFF = {
+  casual:{label:"Casual", mod:2, desc:"Forgiving. A generous starting position; setbacks are recoverable."},
+  realistic:{label:"Realistic", mod:0, desc:"True to life. A believable starting position with real pressure."},
+  brutal:{label:"Brutal", mod:-3, desc:"Hard. Tight resources, hostile events, very small margins for error."}
+};
+const RISK = {
+  low:{label:"Low risk", n:1, swing:"small swings", guide:"small amounts (about 3-8% of a stat's range)"},
+  medium:{label:"Medium risk", n:2, swing:"medium swings", guide:"moderate amounts (about 8-15% of a stat's range)"},
+  high:{label:"High risk", n:3, swing:"big swings", guide:"large amounts (about 12-30% of a stat's range)"}
+};
+// [highest roll, tier] after the difficulty modifier
+const TIER_TABLE = {
+  low:[[3,"setback"],[8,"mixed"],[19,"success"],[20,"breakthrough"]],
+  medium:[[2,"disaster"],[6,"setback"],[11,"mixed"],[18,"success"],[20,"breakthrough"]],
+  high:[[5,"disaster"],[9,"setback"],[12,"mixed"],[16,"success"],[20,"breakthrough"]]
+};
+const TIERS = {
+  breakthrough:{label:"Breakthrough", guide:"Breakthrough: the move works better than hoped and brings a bonus."},
+  success:{label:"Success", guide:"Success: the move works as intended, with modest side effects at most."},
+  mixed:{label:"Mixed", guide:"Mixed: partial success that comes with a real cost or trade-off."},
+  setback:{label:"Setback", guide:"Setback: the move mostly fails; its costs land and its benefits don't."},
+  disaster:{label:"Disaster", guide:"Disaster: the move backfires badly, with clear losses and possibly a new complication."}
+};
+const AV = ["#FFB547","#4FD69C","#FF8FA3","#7CC4FF","#C3B4FF","#FF9A4D"];
+
+/* ============ offline demo ============ */
+const DEMO_WORLD = {
+  title:"Seed Stage", genre:"Startup sim", demo:true,
+  role:"You're the CEO and co-founder of Tandem, an app that matches London dog owners with trusted neighbours for walks.",
+  premise:"You've raised £150k from angel investors and burn £20k a month. You need traction before the money runs out.",
+  goal:"Reach 2,000 weekly active users before the runway ends.",
+  timeUnit:"Month", goalStart:9,
+  stats:[
+    {id:"cash",name:"Cash",prefix:"£",suffix:"k",value:150,min:0,max:300,better:"higher",failAt:0,icon:"coin",desc:"Money left in the bank"},
+    {id:"users",name:"Weekly users",prefix:"",suffix:"",value:180,min:0,max:3000,better:"higher",failAt:null,icon:"people",desc:"Owners and walkers active each week"},
+    {id:"morale",name:"Team morale",prefix:"",suffix:"%",value:70,min:0,max:100,better:"higher",failAt:10,icon:"smile",desc:"Energy of your three-person team"},
+    {id:"product",name:"Product quality",prefix:"",suffix:"/100",value:45,min:0,max:100,better:"higher",failAt:null,icon:"star",desc:"Stability and polish of the app"}
+  ],
+  characters:[
+    {name:"Priya", role:"CTO and co-founder", trait:"Wants to fix the foundations before scaling"},
+    {name:"Marcus", role:"Lead angel investor", trait:"Impatient for a growth chart to show his partners"},
+    {name:"Jo", role:"Community manager", trait:"Knows every early user by their dog's name"}
+  ]
+};
+const DEMO_EVENTS = [
+  {headline:"Crashes or customers?", speaker:"Priya", body:"One in ten bookings crashes the app at checkout. Priya wants a month to rebuild payments. Marcus has emailed twice asking for a growth number for his partners' meeting.", choices:[
+    {label:"Freeze features, fix stability", detail:"Priya rebuilds checkout. Growth work pauses for a month.", risk:"low", up:{product:20,morale:5,users:60}, down:{product:8,users:-30},
+      win:"Checkout is rock solid and new reviews mention how smooth booking feels. Word of mouth starts to trickle in.", mix:"Checkout is fixed, but it takes the whole month and Marcus gets an awkward 'flat' update.", lose:"The rebuild drags on and a few frustrated users drift away before it ships.", lesson:"Fixing a leaky funnel first makes every later growth pound work harder."},
+    {label:"Run a paid Instagram campaign", detail:"£25k on ads targeting London dog owners.", risk:"high", up:{cash:-25,users:450,product:-5}, down:{cash:-25,users:80,morale:-10},
+      win:"The ads hit. Hundreds of sign-ups land in a week, though the crash rate makes some of them bounce.", mix:"Sign-ups come in at twice your target cost, and the crashes eat a chunk of them.", lose:"Cost per install is triple your forecast and the crashes eat most of the new sign-ups.", lesson:"Paid growth amplifies whatever product you have, including its flaws."},
+    {label:"Hire a contract developer", detail:"£15k for two months of extra engineering.", risk:"medium", up:{cash:-15,product:18,users:100,morale:5}, down:{cash:-15,product:4,morale:-8},
+      win:"The contractor ships the fix in three weeks, freeing Priya to build a referral feature.", mix:"The fix ships, but onboarding the contractor costs Priya a fortnight of her own work.", lose:"Onboarding the contractor eats Priya's time and half the code needs rework.", lesson:"Adding people to a late project often slows it down before it speeds it up."}
+  ]},
+  {headline:"A rival goes free", speaker:"Jo", body:"Pawpal, fresh from a £5m Series A, launches in London with free walks for the first month. Jo reports that three of your best walkers have signed up there too.", choices:[
+    {label:"Ignore them, keep building", detail:"Stay on your roadmap and watch the retention numbers.", risk:"low", up:{users:120,morale:5}, down:{users:-80},
+      win:"Pawpal's free walks attract bargain hunters who churn once prices kick in. Your loyal users stay put.", mix:"Your core users stay, but growth stalls while Pawpal hoovers up attention.", lose:"A slice of your users try Pawpal and don't come back.", lesson:"Competitor launches are noisy; retention data tells you whether they actually hurt you."},
+    {label:"Own a niche: trusted neighbours", detail:"Reposition around vetted, same-street walkers. £5k on vetting.", risk:"medium", up:{cash:-5,users:350,product:5}, down:{cash:-5,users:40,morale:-5},
+      win:"'Your neighbour, not a stranger' lands. Owners of anxious dogs flock to you.", mix:"The message resonates with a small, loyal group but doesn't spread far yet.", lose:"The message is too subtle and most people can't tell you apart from Pawpal.", lesson:"Against a better-funded rival, a sharp position beats a price war."},
+    {label:"Match their free month", detail:"Free walks for a month, subsidised by you. About £30k.", risk:"high", up:{cash:-30,users:700}, down:{cash:-35,users:150,morale:-10},
+      win:"You keep pace and pick up Pawpal's frustrated users when their app stumbles.", mix:"You hold your ground, but many of the new users are only here for the freebie.", lose:"You burn cash buying users who leave the moment the free month ends.", lesson:"A price war with a richer competitor is usually a race you lose."}
+  ]},
+  {headline:"Marcus wants a pivot", speaker:"Marcus", body:"Marcus thinks consumer apps are a slog. He wants you to sell scheduling software to doggy daycares instead, and hints that his follow-on cheque depends on it.", choices:[
+    {label:"Run five customer interviews", detail:"Test the B2B idea with real daycares before deciding.", risk:"low", up:{morale:5,product:5,users:80}, down:{morale:-5},
+      win:"Two daycares would pay, three wouldn't. You have evidence, and Marcus respects the process.", mix:"The interviews are useful, but Marcus calls them 'a delay tactic'.", lose:"The interviews are inconclusive and Marcus reads it as stalling.", lesson:"Cheap evidence beats expensive opinions, including your investor's."},
+    {label:"Politely refuse", detail:"Show him your retention curve and hold the line.", risk:"medium", up:{morale:12,users:150}, down:{morale:-5,cash:-10},
+      win:"Your week-4 retention is 38%. Marcus backs down and the team rallies behind you.", mix:"Marcus accepts it, grudgingly, and stops answering your emails quite so quickly.", lose:"Marcus goes quiet. Without his intro, a planned partnership falls through.", lesson:"Founders own the strategy; data is how you defend it."},
+    {label:"Go all-in on B2B", detail:"Pivot the product to daycare software this month.", risk:"high", up:{cash:30,users:-100,product:-10}, down:{cash:-10,users:-150,morale:-20},
+      win:"A daycare chain signs a £30k pilot. Your consumer users notice the app has stopped improving.", mix:"One daycare pilots it for free while your consumer app drifts.", lose:"The pivot splits the team and the daycares want features you can't build fast enough.", lesson:"Pivots under investor pressure, without evidence, burn time and trust."}
+  ]},
+  {headline:"Running on empty", speaker:"Jo", body:"Jo has worked six weekends straight. Priya says she's 'fine' in the voice that means she isn't. A Time Out feature could land if you launch referrals this month.", choices:[
+    {label:"Give everyone a week off", detail:"Lose a week of shipping and keep the team.", risk:"low", up:{morale:25,users:40}, down:{morale:10,users:-40},
+      win:"Everyone comes back sharp. Priya ships referrals in four days.", mix:"The team recovers, but referrals slip to next month.", lose:"The Time Out slot goes to someone else while you're away.", lesson:"Rest is a production input; tired teams make expensive mistakes."},
+    {label:"Top up their equity", detail:"Give Jo and Priya more options to show they're valued.", risk:"medium", up:{morale:18,product:5,users:120}, down:{morale:5,cash:-5},
+      win:"The gesture lands. Both re-commit and push referrals live together.", mix:"They appreciate it, but they're still exhausted and referrals ship late.", lose:"Equity doesn't fix exhaustion, and the lawyers' fees nibble at the bank.", lesson:"Ownership motivates, but it doesn't replace a sustainable workload."},
+    {label:"Push through to launch", detail:"One more sprint for the Time Out feature.", risk:"high", up:{users:600,morale:-15}, down:{morale:-30,product:-10,users:100},
+      win:"Time Out runs the piece and referrals spread across South London.", mix:"The feature runs, but referrals launch buggy and the team is frayed.", lose:"Referrals launch broken, the article is lukewarm, and Jo talks about leaving.", lesson:"Heroic sprints can work once; as a habit they break teams."}
+  ]},
+  {headline:"The bridge round", speaker:"Marcus", body:"Cash is getting thin. Marcus will join a bridge if others do. Two VCs have replied to your deck. Priya asks whether you'd consider shrinking the team.", choices:[
+    {label:"Cut burn to the bone", detail:"Pause salaries above living costs to stretch runway.", risk:"low", up:{cash:25,morale:-5,users:50}, down:{cash:15,morale:-15},
+      win:"Runway doubles. The team grumbles but believes in the plan.", mix:"Runway stretches, but morale takes a visible hit.", lose:"The cuts save money but sap energy just when you needed a push.", lesson:"Cutting burn buys you the right to keep playing."},
+    {label:"Raise a bridge from angels", detail:"£80k on a convertible note from existing backers.", risk:"medium", up:{cash:80,morale:5}, down:{cash:30,morale:-5},
+      win:"Your angels pile in. The note closes in ten days.", mix:"Half the angels join; you close £50k after three weeks of chasing.", lose:"Only Marcus commits, on harsher terms than you hoped.", lesson:"Existing investors are the fastest money, if you've kept them informed."},
+    {label:"Pitch 20 VCs in two weeks", detail:"Go for a proper seed round now.", risk:"high", up:{cash:250,morale:10,users:200}, down:{cash:-5,morale:-15},
+      win:"A seed fund leads a £250k round on the strength of your retention.", mix:"One fund offers a small cheque with a board seat attached.", lose:"Twenty pitches, twenty passes. The process eats your time and confidence.", lesson:"Raising from strength means timing the round around your best metrics."}
+  ]}
+];
+const DEMO_PLAN = [
+  "Instrument retention before you spend on acquisition, so you know whether growth will stick.",
+  "Write down your position against the best-funded rival in one sentence, and test it on ten users.",
+  "Send investors a short monthly update so that asking for a bridge is never a surprise.",
+  "Plan work in sprints with real recovery weeks, and watch for exhaustion in your first hires.",
+  "Track months of runway at current burn every week, and decide your cut-or-raise point in advance."
+];
+
+/* ============ state ============ */
+let S = {screen:"home", game:null, draft:{request:"", difficulty:"realistic", length:10, depth:"fast"}, busy:false, error:null, load:null, customText:"", customRisk:"medium", customOpen:false, logOpen:null, copied:false};
+let ctl = null;
+let aiState = "checking";
+const samplePromise = (window.claude && typeof window.claude.use === "function")
+  ? Promise.resolve().then(() => window.claude.use("sample")).catch(() => null)
+  : Promise.resolve(null);
+samplePromise.then(s => { aiState = s ? "ready" : "off"; const n = document.getElementById("ai-note"); if (n) n.textContent = aiNoteText(); });
+
+/* ============ helpers ============ */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const num = (v, d) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
+const str = (v, n) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, n);
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isWide = () => window.matchMedia && matchMedia("(min-width: 900px)").matches;
+const plural = (unit, n) => n === 1 ? unit : (/(s|x|ch|sh)$/i.test(unit) ? unit + "es" : /[^aeiou]y$/i.test(unit) ? unit.slice(0, -1) + "ies" : unit + "s");
+function icon(name){ return `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.chart}</svg>`; }
+function avatar(name){
+  const n = String(name || "?"); let h = 0; for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const ini = n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "?";
+  return `<span class="av" style="--av:${AV[h % AV.length]}" aria-hidden="true">${esc(ini)}</span>`;
+}
+function miniDie(n){ return `<span class="mini-die"><svg viewBox="0 0 100 100" aria-hidden="true">${D20}</svg><b>${esc(n)}</b></span>`; }
+function roundFor(s, v){ return (s.max - s.min) <= 20 ? Math.round(v * 10) / 10 : Math.round(v); }
+const ORD = /^(st|nd|rd|th)$/i;
+function ordinal(n){ const t = n % 100; if (t >= 11 && t <= 13) return "th"; return ({1:"st",2:"nd",3:"rd"})[n % 10] || "th"; }
+function fmt(s, v = s.value){
+  const r = roundFor(s, v), a = Math.abs(r);
+  const suf = ORD.test(s.suffix) ? (Number.isInteger(a) ? ordinal(a) : "") : s.suffix;
+  return `${r < 0 ? "−" : ""}${s.prefix}${a.toLocaleString("en-GB")}${suf}`;
+}
+function fmtDelta(s, d){
+  const r = roundFor(s, d);
+  const suf = ORD.test(s.suffix) ? (Math.abs(r) === 1 ? " place" : " places") : s.suffix.startsWith("/") ? "" : s.suffix;
+  return `${r < 0 ? "−" : "+"}${s.prefix}${Math.abs(r).toLocaleString("en-GB")}${suf}`;
+}
+function health(s){
+  if (s.better === "higher"){ const lo = s.failAt ?? s.min; return clamp((s.value - lo) / ((s.max - lo) || 1), 0, 1); }
+  const hi = s.failAt ?? s.max; return clamp((hi - s.value) / ((hi - s.min) || 1), 0, 1);
+}
+function pips(risk){ const n = RISK[risk].n; return [1,2,3].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join(""); }
+
+/* ============ dice ============ */
+function tierOf(risk, total){ for (const [hi, t] of TIER_TABLE[risk]) if (total <= hi) return t; return "breakthrough"; }
+function tierForRoll(risk, roll, mod){
+  if (roll === 20) return "breakthrough";
+  if (roll === 1) return risk === "low" ? "setback" : "disaster";
+  return tierOf(risk, clamp(roll + mod, 1, 20));
+}
+function odds(risk, mod){ let g = 0; for (let r = 1; r <= 20; r++){ const t = tierForRoll(risk, r, mod); if (t === "success" || t === "breakthrough") g++; } return g * 5; }
+function rollDice(risk, difficulty){
+  let roll;
+  try { const a = new Uint32Array(1); crypto.getRandomValues(a); roll = 1 + (a[0] % 20); } catch(e){ roll = 1 + Math.floor(Math.random() * 20); }
+  const mod = DIFF[difficulty]?.mod ?? 0;
+  return {roll, mod, total: clamp(roll + mod, 1, 20), tier: tierForRoll(risk, roll, mod)};
+}
+function rollMeta(d, risk){
+  const m = d.mod ? ` ${d.mod > 0 ? "+" : "−"} ${Math.abs(d.mod)} difficulty = ${d.total}` : "";
+  return `d20 rolled ${d.roll}${m} · ${RISK[risk].label.toLowerCase()}`;
+}
+function showDice(d, risk){
+  return new Promise(resolve => {
+    const L = document.getElementById("dice"), die = document.getElementById("die"), numEl = document.getElementById("dnum"), meta = document.getElementById("dmeta"), stamp = document.getElementById("dstamp");
+    let landed = false, finished = false, iv = null, t1 = null, t2 = null;
+    const finish = () => { if (finished) return; finished = true; clearInterval(iv); clearTimeout(t1); clearTimeout(t2); L.hidden = true; L.onclick = null; resolve(); };
+    const land = () => {
+      if (landed) return; landed = true; clearInterval(iv); clearTimeout(t1); die.classList.remove("tumble");
+      numEl.textContent = d.total; meta.textContent = rollMeta(d, risk);
+      stamp.textContent = TIERS[d.tier].label; stamp.className = "dstamp stamp show t-" + d.tier;
+      t2 = setTimeout(finish, 1150);
+    };
+    stamp.textContent = ""; stamp.className = "dstamp"; meta.textContent = `Rolling for a ${RISK[risk].label.toLowerCase()} move…`;
+    L.hidden = false; L.onclick = () => landed ? finish() : land();
+    if (reduceMotion()){ land(); return; }
+    die.classList.remove("tumble"); void die.offsetWidth; die.classList.add("tumble");
+    iv = setInterval(() => { numEl.textContent = 1 + Math.floor(Math.random() * 20); }, 70);
+    t1 = setTimeout(land, 980);
+  });
+}
+
+/* ============ persistence ============ */
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({game:S.game, draft:S.draft})); } catch(e){} }
+function loadSaved(){ try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e){ return null; } }
+let saveTimer = null;
+function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+
+/* ============ normalising Claude's JSON ============ */
+function slug(s, i){ return (String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "stat" + i).slice(0, 24); }
+function normalizeStats(arr){
+  const out = [], seen = new Set();
+  (Array.isArray(arr) ? arr : []).slice(0, 6).forEach((s, i) => {
+    if (!s || typeof s !== "object") return;
+    let id = slug(s.id || s.name, i); while (seen.has(id)) id += "_" + i; seen.add(id);
+    let min = num(s.min, 0), max = num(s.max, 100); if (max <= min) max = min + 100;
+    let value = clamp(num(s.value, (min + max) / 2), min, max);
+    const better = s.better === "lower" ? "lower" : "higher";
+    let failAt = (s.failAt === null || s.failAt === undefined || s.failAt === "") ? null : num(s.failAt, null);
+    if (failAt !== null){
+      failAt = clamp(failAt, min, max);
+      if (better === "higher" && value <= failAt) value = failAt + (max - failAt) * 0.4;
+      if (better === "lower" && value >= failAt) value = failAt - (failAt - min) * 0.4;
+    }
+    out.push({id, name:str(s.name, 28) || id, prefix:str(s.prefix, 4), suffix:str(s.suffix, 8), min, max, value, better, failAt, icon: ICONS[s.icon] ? s.icon : "chart", desc:str(s.desc, 90)});
+  });
+  return out;
+}
+function normalizeEvent(e){
+  if (!e || typeof e !== "object") return null;
+  const choices = (Array.isArray(e.choices) ? e.choices : []).slice(0, 4)
+    .map(c => ({label:str(c && c.label, 80), detail:str(c && c.detail, 220), risk:["low","medium","high"].includes(c && c.risk) ? c.risk : "medium"}))
+    .filter(c => c.label);
+  if (choices.length < 2 || !str(e.body, 900)) return null;
+  return {headline:str(e.headline, 80) || "A decision", speaker:str(e.speaker, 30), body:str(e.body, 900), choices};
+}
+function normalizeWorld(raw){
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw {code:"invalid_json"};
+  const stats = normalizeStats(raw.stats);
+  const firstEvent = normalizeEvent(raw.firstEvent);
+  if (stats.length < 2 || !firstEvent) throw {code:"invalid_json"};
+  return {
+    title:str(raw.title, 40) || "Untitled sim", genre:str(raw.genre, 40) || "Simulation",
+    role:str(raw.role, 260), premise:str(raw.premise, 700), goal:str(raw.goal, 260) || "Finish in a stronger position than you started.",
+    timeUnit:cap(str(raw.timeUnit, 16)) || "Turn", goalStart:0, stats,
+    characters:(Array.isArray(raw.characters) ? raw.characters : []).slice(0, 4).map(c => ({name:str(c && c.name, 30), role:str(c && c.role, 48), trait:str(c && c.trait, 140)})).filter(c => c.name),
+    firstEvent
+  };
+}
+function normalizeTurn(raw, g, final){
+  if (!raw || typeof raw !== "object" || !str(raw.outcome, 900)) throw {code:"invalid_json"};
+  const find = id => { const k = String(id || "").toLowerCase(); return g.stats.find(s => s.id === k || s.name.toLowerCase() === k); };
+  const effects = (Array.isArray(raw.effects) ? raw.effects : []).map(x => {
+    const st = x && find(x.id); return st ? {id:st.id, delta:num(x.delta, 0), why:str(x.why, 60)} : null;
+  }).filter(x => x && x.delta !== 0).slice(0, 5);
+  const nextEvent = final ? null : normalizeEvent(raw.nextEvent);
+  if (!final && !nextEvent) throw {code:"invalid_json"};
+  return {outcome:str(raw.outcome, 900), effects, goalDelta:Math.round(clamp(num(raw.goalDelta, 0), -15, 20)), lesson:str(raw.lesson, 300), nextEvent};
+}
+function normalizeDebrief(raw, g){
+  if (!raw || typeof raw !== "object") throw {code:"invalid_json"};
+  const n = g.history.length;
+  const mv = m => (m && typeof m === "object" && num(m.turn, 0) >= 1) ? {turn:clamp(Math.round(num(m.turn, 1)), 1, n), why:str(m.why, 260)} : null;
+  const list = (a, k) => (Array.isArray(a) ? a : []).map(x => str(x, 280)).filter(Boolean).slice(0, k);
+  const grade = /^[A-F]$/i.test(str(raw.grade, 2).charAt(0)) ? str(raw.grade, 2).charAt(0).toUpperCase() : gradeFor(score(g));
+  return {verdict:str(raw.verdict, 100) || resultOf(g).label, grade, summary:str(raw.summary, 600), pattern:str(raw.pattern, 300), bestMove:mv(raw.bestMove), worstMove:mv(raw.worstMove), lessons:list(raw.lessons, 5), realWorldPlan:list(raw.realWorldPlan, 5), tryNext:str(raw.tryNext, 260)};
+}
+
+/* ============ prompts ============ */
+function statLine(s){
+  const dir = s.better === "higher" ? "higher is better" : "lower is better";
+  const fail = s.failAt === null ? "cannot end the game" : `the game is lost at ${fmt(s, s.failAt)}`;
+  return `- id "${s.id}" — ${s.name}: ${fmt(s)} (range ${fmt(s, s.min)} to ${fmt(s, s.max)}; ${dir}; ${fail})`;
+}
+function setupPrompt(req, diff, length){
+  return `You design games for "Dry Run", an app where people rehearse a real problem by playing it as a turn-based simulation before they face it for real.
+
+The player asked to play: """${req}"""
+
+Turn the request into a game:
+- If it names a game genre or a management role (for example "Football Manager" or "Startup Manager"), build that management sim.
+- If it describes a real problem or decision (a negotiation, a launch, a crisis, a life change), cast the player as the person facing it, with the real stakeholders, constraints and pressures.
+- Ground everything in how this domain really works: real terms of art, real constraints, plausible numbers and units (£, %, league position, weeks of runway, beds, listeners and so on).
+- Design stats that pull against each other, so no choice is free.
+
+Difficulty: ${DIFF[diff].label}. ${DIFF[diff].desc}
+Length: ${length} turns. Pick a natural time unit for one turn (Week, Month, Matchweek, Day, Quarter, Round…) so that ${length} of them cover the problem's real timeline.
+
+Reply with only a JSON object of this shape:
+{
+  "title": "2-4 word game title",
+  "genre": "2-3 word genre label, e.g. Management sim, Negotiation drama",
+  "role": "One sentence in second person: who the player is",
+  "premise": "2-3 sentences that set the scene with concrete specifics",
+  "goal": "The win condition in one concrete, measurable sentence",
+  "timeUnit": "Singular noun for one turn",
+  "stats": [
+    {"id": "cash", "name": "Cash", "prefix": "£", "suffix": "k", "value": 150, "min": 0, "max": 400, "better": "higher", "failAt": 0, "icon": "coin", "desc": "Under 10 words"}
+  ],
+  "characters": [
+    {"name": "First name", "role": "Their position, 2-4 words", "trait": "What drives them, under 12 words"}
+  ],
+  "firstEvent": {
+    "headline": "Under 7 words",
+    "speaker": "One character's name, or an empty string",
+    "body": "2-4 sentences: a concrete situation that demands a decision now",
+    "choices": [
+      {"label": "Imperative, under 7 words", "detail": "One sentence on what it involves and costs", "risk": "low"}
+    ]
+  }
+}
+Rules:
+- 4 or 5 stats with short lowercase ids. "better" is "higher" or "lower" (league position or stress are better lower). "failAt" is the value at which the game is lost when the stat reaches or passes it in the bad direction, or null if the stat cannot end the game. At least one stat must be able to end the game. Start values sit between min and max, on the safe side of failAt.
+- "icon" is one of: coin, people, heart, star, bolt, shield, chart, flame, clock, trophy, smile, book.
+- 2 to 4 characters, each with a distinct agenda.
+- Exactly 3 choices: one each of risk "low", "medium" and "high", in any order. Each must be a defensible option with a real downside.`;
+}
+function historyLines(g, k){
+  const H = g.history.slice(-k);
+  if (!H.length) return "(none yet)";
+  return H.map(h => `- ${g.world.timeUnit} ${h.turn}: "${h.headline}" — chose "${h.move.label}" (${h.move.risk} risk), dice: ${h.dice.tier}. ${h.outcome} [${h.effects.map(e => `${e.id} ${e.delta > 0 ? "+" : ""}${Math.round(e.delta * 10) / 10}`).join(", ") || "no stat change"}]`).join("\n");
+}
+function turnPrompt(g, p, final){
+  const w = g.world, e = g.event, m = p.move, left = g.length - g.turn;
+  const moveText = m.custom ? `(written by the player) "${m.label}"` : `"${m.label}" — ${m.detail}`;
+  return `You are the simulation engine for "Dry Run", a turn-based game where the player rehearses a real problem. Resolve the player's move and set up the next turn.
+
+GAME: ${w.title} (${w.genre})
+ROLE: ${w.role}
+PREMISE: ${w.premise}
+GOAL: ${w.goal}
+DIFFICULTY: ${DIFF[g.difficulty].label}. ${DIFF[g.difficulty].desc}
+TURN: ${w.timeUnit} ${g.turn} of ${g.length}${final ? " (this is the FINAL turn)" : ""}
+
+STATS NOW:
+${g.stats.map(statLine).join("\n")}
+GOAL PROGRESS: ${g.goal}/100
+
+CHARACTERS:
+${w.characters.map(c => `- ${c.name} (${c.role}): ${c.trait}`).join("\n") || "(none)"}
+
+RECENT TURNS:
+${historyLines(g, 6)}
+
+CURRENT SITUATION: "${e.headline}" — ${e.body}
+
+PLAYER'S MOVE: ${moveText}
+RISK: ${m.risk}
+DICE: rolled ${p.dice.roll} on a d20${p.dice.mod ? `, ${p.dice.mod > 0 ? "+" : ""}${p.dice.mod} for difficulty = ${p.dice.total}` : ""} → ${p.dice.tier.toUpperCase()}
+
+The dice result is binding. ${TIERS[p.dice.tier].guide}
+A ${m.risk}-risk move shifts stats by ${RISK[m.risk].guide}. Keep units and magnitudes realistic.${m.custom ? " The player wrote this move themselves: if it is impossible for their role or in this world, narrate a failed attempt and explain why." : ""}
+
+Reply with only a JSON object:
+{
+  "outcome": "2-3 sentences in second person: what happened, with concrete specifics and names",
+  "effects": [{"id": "a stat id from the list", "delta": -12, "why": "Under 6 words"}],
+  "goalDelta": 8,
+  "lesson": "One sentence: the real-world principle this turn illustrates",
+  "nextEvent": {"headline": "Under 7 words", "speaker": "A character's name or empty string", "body": "2-4 sentences", "choices": [{"label": "Imperative, under 7 words", "detail": "One sentence", "risk": "low"}]}
+}
+Rules:
+- 1 to 4 effects, using only the stat ids listed above. A delta is a signed number in the stat's own units, without prefix or suffix.
+- goalDelta is an integer from -15 to 20: how far this turn moved the player toward the goal.
+- ${final ? '"nextEvent" must be null.' : `nextEvent is a new situation that follows from the story so far: a consequence of this move, a character pushing their agenda, or an outside shock. Vary the kind of event from recent turns. Exactly 3 choices, one each of risk low, medium and high.${left <= 2 ? " Build toward a climax: the game ends soon." : ""}`}`;
+}
+function debriefPrompt(g){
+  const w = g.world, r = resultOf(g);
+  const all = g.history.map(h => `${h.turn}. ${w.timeUnit} ${h.turn} — "${h.headline}": chose "${h.move.label}" (${h.move.risk} risk${h.move.custom ? ", the player's own move" : ""}), dice ${h.dice.tier}. ${h.outcome} Effects: ${h.effects.map(e => { const s = g.stats.find(x => x.id === e.id); return s ? `${s.name} ${fmtDelta(s, e.delta)}` : ""; }).filter(Boolean).join(", ") || "none"}; goal ${h.goalDelta >= 0 ? "+" : ""}${h.goalDelta}.`).join("\n");
+  return `You are the coach in "Dry Run", where people rehearse a real problem as a game before they face it for real. The game below just ended. Write the debrief: what this run reveals about handling the real-world version of the problem.
+
+ORIGINAL REQUEST: "${g.request}"
+GAME: ${w.title} (${w.genre}). ${w.role}
+GOAL: ${w.goal}
+RESULT: ${r.label}. ${g.endReason}. Score ${score(g)}/100. Goal progress ${g.goal}/100. Difficulty ${DIFF[g.difficulty].label}.
+FINAL STATS:
+${g.stats.map(s => `- ${s.name}: ${fmt(s)}`).join("\n")}
+EVERY TURN:
+${all}
+
+Judge the decisions, not the dice: a sound move that rolled badly is still a good move.
+Reply with only a JSON object:
+{
+  "verdict": "Headline verdict, under 10 words",
+  "grade": "A, B, C, D or F",
+  "summary": "2-3 sentences on how the run went and why",
+  "pattern": "One sentence on the player's decision style: risk appetite and what they prioritised",
+  "bestMove": {"turn": 3, "why": "One sentence"},
+  "worstMove": {"turn": 5, "why": "One sentence"},
+  "lessons": ["3 to 5 transferable lessons for the real-world version of this problem, one sentence each"],
+  "realWorldPlan": ["3 to 5 concrete first steps to take when facing this for real, one sentence each"],
+  "tryNext": "One sentence suggesting how to replay it differently"
+}`;
+}
+
+/* ============ errors ============ */
+function errorCopy(e){
+  const c = e && e.code;
+  if (c === "cancelled") return null;
+  if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(c)){
+    aiState = "off";
+    return "Claude isn't available on this page, so it can't build or run custom games here. The offline demo still works.";
+  }
+  if (c === "rate_limited") return "You've reached a usage limit. Wait a little, then try again.";
+  if (c === "session_expired") return "Your Claude session has expired. Sign in again, then try again.";
+  if (c === "refused") return "Claude won't build a game around that. Try describing the problem differently.";
+  if (c === "prompt_too_large") return "This game's history is too long to send. Start a shorter game.";
+  return "The simulation glitched before it finished. Try again.";
+}
+function aiNoteText(){
+  if (aiState === "off") return "Claude isn't available on this page, so custom games won't build here. The offline demo still works.";
+  return "Claude builds each game and plays the world around you, using your Claude usage. The first time, Claude asks you to allow it.";
+}
+
+/* ============ game logic ============ */
+function newGame(world, o){
+  return {id:Date.now(), demo:!!o.demo, request:o.request, difficulty:o.difficulty, length:o.length, depth:o.depth, world,
+    stats:world.stats.map(s => ({...s})), turn:1, goal:world.goalStart || 0, event:world.firstEvent,
+    history:[], status:"playing", endReason:"", pending:null, result:null, nextEvent:null, debrief:null, debriefState:null, debriefError:null, viewedEnd:false};
+}
+function score(g){
+  const avg = g.stats.reduce((a, s) => a + health(s), 0) / (g.stats.length || 1);
+  let sc = Math.round(g.goal * 0.65 + avg * 35);
+  if (g.status === "lost") sc = Math.min(sc, 45);
+  if (g.status === "won") sc = Math.max(sc, 80);
+  return clamp(sc, 0, 100);
+}
+function gradeFor(sc){ return sc >= 85 ? "A" : sc >= 70 ? "B" : sc >= 55 ? "C" : sc >= 40 ? "D" : "F"; }
+function resultOf(g){
+  if (g.status === "lost") return {label:"Game over", cls:"t-disaster"};
+  if (g.status === "won") return {label:"Victory", cls:"t-breakthrough"};
+  if (g.goal >= 70) return {label:"Strong finish", cls:"t-success"};
+  if (g.goal >= 40) return {label:"Survived", cls:"t-mixed"};
+  return {label:"Fell short", cls:"t-setback"};
+}
+function demoResolve(g, p){
+  const ev = DEMO_EVENTS[g.turn - 1], c = ev && ev.choices[p.move.index];
+  if (!c) throw {code:"invalid_json"};
+  const t = p.dice.tier, mult = {breakthrough:[1.5,0], success:[1,0], mixed:[.5,.5], setback:[0,1], disaster:[0,1.5]}[t];
+  const sum = {};
+  // Extreme rolls scale the gains of a good outcome and the losses of a bad one; up-front costs stay fixed.
+  for (const [k, v] of Object.entries(c.up)) sum[k] = (sum[k] || 0) + (mult[0] > 1 && v < 0 ? v : v * mult[0]);
+  for (const [k, v] of Object.entries(c.down)) sum[k] = (sum[k] || 0) + (mult[1] > 1 && v > 0 ? v * 0.5 : v * mult[1]);
+  const effects = Object.entries(sum).map(([id, d]) => ({id, delta:Math.round(d), why:"Your move"})).filter(e => e.delta !== 0);
+  effects.push({id:"cash", delta:-20, why:"Monthly burn"});
+  const outcome = t === "breakthrough" ? c.win + " It goes even better than you planned." : t === "success" ? c.win : t === "mixed" ? c.mix : t === "setback" ? c.lose : c.lose + " The fallout costs more than you expected.";
+  return {outcome, effects, goalDelta:0, lesson:c.lesson, nextEvent: g.turn < DEMO_EVENTS.length ? DEMO_EVENTS[g.turn] : null};
+}
+function applyResult(g, p, res){
+  const before = {}; g.stats.forEach(s => before[s.id] = s.value);
+  const goalBefore = g.goal, applied = [];
+  for (const ef of res.effects){
+    const st = g.stats.find(s => s.id === ef.id); if (!st) continue;
+    const lim = (st.max - st.min) * 0.45, d = clamp(ef.delta, -lim, lim);
+    const nv = clamp(st.value + d, st.min, st.max), real = nv - st.value;
+    st.value = nv;
+    if (real !== 0) applied.push({id:st.id, delta:real, why:ef.why});
+  }
+  if (g.demo){ const u = g.stats.find(s => s.id === "users"); g.goal = clamp(Math.round(u.value / 2000 * 100), 0, 100); }
+  else g.goal = clamp(g.goal + res.goalDelta, 0, 100);
+  const goalDelta = g.goal - goalBefore;
+  const entry = {turn:g.turn, headline:g.event.headline, move:p.move, dice:p.dice, outcome:res.outcome, effects:applied, goalDelta, lesson:res.lesson};
+  g.history.push(entry);
+  g.result = {...entry, before, goalBefore, animated:false};
+  g.nextEvent = res.nextEvent; g.pending = null;
+  const failed = g.stats.find(s => s.failAt !== null && (s.better === "higher" ? s.value <= s.failAt : s.value >= s.failAt));
+  if (failed){ g.status = "lost"; g.endReason = `${failed.name} hit ${fmt(failed)} in ${g.world.timeUnit} ${g.turn}`; }
+  else if (g.goal >= 100){ g.status = "won"; g.endReason = `You reached the goal in ${g.world.timeUnit} ${g.turn} of ${g.length}`; }
+  else if (g.turn >= g.length || !res.nextEvent){ g.status = "done"; g.endReason = `You played all ${g.history.length} ${plural(g.world.timeUnit.toLowerCase(), g.history.length)} and reached ${g.goal}% of the goal`; }
+}
+async function aiResolve(g, p){
+  const s = await samplePromise; if (!s) throw {code:"not_granted"};
+  ctl = new AbortController();
+  const final = g.turn >= g.length;
+  const raw = await s.json(turnPrompt(g, p, final), {modelTier: g.depth === "deep" ? "default" : "quick", cache:false, signal:ctl.signal});
+  return normalizeTurn(raw, g, final);
+}
+async function playMove(move){
+  const g = S.game; if (!g || S.busy || g.pending || g.result || g.status !== "playing") return;
+  const dice = rollDice(move.risk, g.difficulty);
+  g.pending = {move, dice}; S.customText = ""; S.customOpen = false; S.error = null; save();
+  await resolvePending(showDice(dice, move.risk));
+}
+async function resolvePending(anim){
+  const g = S.game, p = g && g.pending; if (!p || S.busy) return;
+  S.busy = true; S.error = null; render();
+  let res = null, err = null;
+  const call = (async () => { try { res = g.demo ? demoResolve(g, p) : await aiResolve(g, p); } catch(e){ err = e; } })();
+  await Promise.all([call, anim || Promise.resolve()]);
+  S.busy = false;
+  if (S.game !== g) return;
+  if (err) S.error = errorCopy(err); else applyResult(g, p, res);
+  save(); render();
+  if (!err){ const o = document.getElementById("outcome"); if (o) o.scrollIntoView({block:"nearest", behavior: reduceMotion() ? "auto" : "smooth"}); }
+}
+function nextTurn(){
+  const g = S.game; if (!g || !g.result) return;
+  if (g.status !== "playing"){ toEnd(); return; }
+  g.turn++; g.event = g.nextEvent; g.nextEvent = null; g.result = null; S.error = null;
+  save(); render(); window.scrollTo({top:0, behavior: reduceMotion() ? "auto" : "smooth"});
+}
+function toEnd(){
+  const g = S.game; if (!g) return;
+  g.viewedEnd = true; S.screen = "end"; S.copied = false; save(); render(); window.scrollTo(0, 0);
+  if (!g.debrief && g.debriefState !== "loading") fetchDebrief();
+}
+async function fetchDebrief(){
+  const g = S.game; if (!g) return;
+  if (g.demo){ g.debrief = demoDebrief(g); save(); render(); return; }
+  g.debriefState = "loading"; g.debriefError = null; render();
+  try {
+    const s = await samplePromise; if (!s) throw {code:"not_granted"};
+    const raw = await s.json(debriefPrompt(g), {modelTier:"default"});
+    g.debrief = normalizeDebrief(raw, g);
+  } catch(e){ g.debriefError = errorCopy(e) || "The debrief was cancelled."; }
+  g.debriefState = null;
+  save(); if (S.game === g && S.screen === "end") render();
+}
+function demoDebrief(g){
+  const sc = score(g), H = g.history;
+  const best = H.reduce((a, h) => (!a || h.goalDelta > a.goalDelta) ? h : a, null);
+  const worst = H.filter(h => h !== best).reduce((a, h) => (!a || h.goalDelta < a.goalDelta) ? h : a, null);
+  const rc = {low:0, medium:0, high:0}; H.forEach(h => rc[h.move.risk]++);
+  const style = rc.high > rc.low ? "an aggressive style that bet on big swings" : rc.low > rc.high ? "a cautious style that protected the downside" : "a balanced style that mixed safe and bold moves";
+  const users = g.stats.find(s => s.id === "users"), cash = g.stats.find(s => s.id === "cash");
+  return {
+    verdict: g.status === "won" ? "You found traction before the cash ran out" : g.status === "lost" ? "The company ran out of road" : g.goal >= 40 ? "Alive, but not yet growing fast enough" : "Safe, but too slow to matter",
+    grade: gradeFor(sc),
+    summary: `You finished with ${fmt(users)} weekly users and ${fmt(cash)} in the bank, ${g.goal}% of the way to the goal. ${g.status === "lost" ? g.endReason + "." : "The company is still standing."}`,
+    pattern: `You made ${rc.high} high-risk, ${rc.medium} medium-risk and ${rc.low} low-risk moves: ${style}.`,
+    bestMove: best ? {turn:best.turn, why:`It moved you ${best.goalDelta} points toward 2,000 weekly users, the most of any month.`} : null,
+    worstMove: worst ? {turn:worst.turn, why: worst.goalDelta > 0 ? `It moved you only ${worst.goalDelta} points toward the goal, the least of any month.` : worst.goalDelta === 0 ? "It didn't move you any closer to the goal, the only month that stood still." : `It pushed you ${Math.abs(worst.goalDelta)} points away from the goal.`} : null,
+    lessons: [...new Set(H.map(h => DEMO_EVENTS[h.turn - 1].choices[h.move.index].lesson))].slice(0, 5),
+    realWorldPlan: DEMO_PLAN,
+    tryNext: "Replay on Brutal and try to reach the goal without the paid campaign or the free month."
+  };
+}
+
+/* ============ build a new game ============ */
+async function buildGame(){
+  const req = str(S.draft.request, 400);
+  if (!req){ const t = document.getElementById("req"); if (t) t.focus(); S.error = "Describe a problem or pick a cartridge first."; render(); return; }
+  S.error = null;
+  const s = await samplePromise;
+  if (!s){ aiState = "off"; S.error = errorCopy({code:"not_granted"}); render(); return; }
+  S.screen = "load"; S.load = {request:req, title:"", premise:"", stage:0}; render(); window.scrollTo(0, 0);
+  ctl = new AbortController();
+  const d = S.draft;
+  try {
+    const raw = await s.json(setupPrompt(req, d.difficulty, d.length), {modelTier:"default", cache:false, signal:ctl.signal, onText:({text}) => peek(text)});
+    const world = normalizeWorld(raw);
+    S.game = newGame(world, {request:req, difficulty:d.difficulty, length:d.length, depth:d.depth});
+    S.screen = "play"; S.customText = ""; S.customOpen = false;
+  } catch(e){
+    S.screen = "home"; S.error = errorCopy(e);
+  }
+  S.load = null; save(); render(); window.scrollTo(0, 0);
+}
+function partial(text, key){
+  const m = text.match(new RegExp('"' + key + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)'));
+  if (!m) return "";
+  try { return JSON.parse('"' + m[1].replace(/\\$/, "") + '"'); } catch(e){ return m[1].replace(/\\"/g, '"').replace(/\\n/g, " "); }
+}
+function peek(text){
+  if (S.screen !== "load" || !S.load) return;
+  const L = S.load;
+  const title = partial(text, "title"), premise = partial(text, "premise");
+  const stage = text.includes('"choices"') ? 4 : text.includes('"firstEvent"') ? 3 : text.includes('"characters"') ? 2 : text.includes('"stats"') ? 1 : 0;
+  if (title && title !== L.title){ L.title = title; const el = document.getElementById("ld-title"); if (el) el.textContent = title; }
+  if (premise && premise !== L.premise){ L.premise = premise; const el = document.getElementById("ld-premise"); if (el) el.textContent = premise; }
+  if (stage !== L.stage){ L.stage = stage; document.querySelectorAll(".steps li").forEach((li, i) => { li.className = i < stage ? "done" : i === stage ? "active" : ""; }); }
+}
+
+/* ============ render ============ */
+function segHTML(key, label, opts, val, dark){
+  return `<div class="optrow"><span id="lbl-${key}">${esc(label)}</span><div class="seg${dark ? " dark" : ""}" role="radiogroup" aria-labelledby="lbl-${key}">${opts.map(([v, l]) => `<button type="button" role="radio" aria-checked="${String(v) === String(val)}" data-act="${dark ? "crisk" : "opt"}" data-k="${key}" data-v="${v}">${esc(l)}</button>`).join("")}</div></div>`;
+}
+function homeHTML(){
+  const d = S.draft, g = S.game;
+  const cont = g ? `<button class="continue" data-act="continue"><span class="c-eye">${g.status === "playing" ? "Continue" : "Last game"}</span><b>${esc(g.world.title)}</b><span class="c-meta">${g.status === "playing" ? `${esc(g.world.timeUnit)} ${g.turn} of ${g.length}` : esc(resultOf(g).label)} · ${esc(g.world.genre)}${g.demo ? " · demo" : ""}</span><span class="c-arrow" aria-hidden="true">→</span></button>` : "";
+  return `<main class="home wrap">
+    <section>
+      <header>
+        <h1 class="logo" aria-label="Dry Run"><span class="l1">DRY<svg viewBox="0 0 100 100" aria-hidden="true">${D20}</svg></span><span class="run">RUN</span></h1>
+        <p class="tagline">Play the problem before you face it.</p>
+        <p class="sub">Describe any situation. Claude turns it into a turn-based simulation with stats, characters, dice and consequences, then coaches you on how to handle it for real.</p>
+      </header>
+      ${cont}
+      <form class="builder paper" id="builder" novalidate>
+        <label for="req" class="field-label">What do you want to play?</label>
+        <textarea id="req" rows="3" maxlength="400" placeholder="Football Manager, my first startup, asking my boss for a pay rise…">${esc(d.request)}</textarea>
+        <div class="opts">
+          ${segHTML("difficulty", "Difficulty", [["casual","Casual"],["realistic","Realistic"],["brutal","Brutal"]], d.difficulty)}
+          ${segHTML("length", "Turns", [[6,"6"],[10,"10"],[15,"15"]], d.length)}
+          ${segHTML("depth", "Simulation", [["fast","Fast"],["deep","Deep"]], d.depth)}
+        </div>
+        <button type="submit" class="btn wide" id="build">Build my game</button>
+        ${S.error ? `<p class="err" role="alert">${esc(S.error)}</p>` : ""}
+        <p class="ai-note" id="ai-note">${esc(aiNoteText())}</p>
+      </form>
+    </section>
+    <aside>
+      <h2 class="shelf-title">Or pick a cartridge</h2>
+      <div class="carts">${CARTS.map((c, i) => `<button class="cart${d.request === c.prompt ? " sel" : ""}" style="--tag:${TAGS[c.tag]}" data-act="cart" data-i="${i}"><span class="strip">${esc(c.tag)}${icon(c.icon)}</span><span class="cbody"><b>${esc(c.name)}</b><small>${esc(c.line)}</small></span></button>`).join("")}</div>
+      <ol class="how">
+        <li><span class="n">1</span><span><b>Describe it</b>A genre, a job, a decision you're dreading.</span></li>
+        <li><span class="n">2</span><span><b>Claude builds the world</b>Stats, people, pressures and a goal.</span></li>
+        <li><span class="n">3</span><span><b>Roll for every move</b>Bolder moves swing harder, both ways.</span></li>
+        <li><span class="n">4</span><span><b>Get a debrief</b>Lessons and a plan for the real thing.</span></li>
+      </ol>
+      <button class="demo-link" data-act="demo">${miniDie(5)}<span><b>Play the offline demo: Seed Stage</b><small>A five-month startup run that works without Claude.</small></span></button>
+    </aside>
+  </main>`;
+}
+function loadHTML(){
+  const L = S.load || {request:"", title:"", premise:"", stage:0};
+  const steps = ["Rules and goal","Stats that pull against each other","Characters with agendas","The first situation","Your three opening moves"];
+  return `<main class="wrap loading"><div class="load-card">
+    <div class="spin-die"><svg viewBox="0 0 100 100" aria-hidden="true">${D20}</svg></div>
+    <p class="eyebrow">Building your game</p>
+    <h1 class="load-title" id="ld-title">${esc(L.title || L.request)}</h1>
+    <p class="load-premise" id="ld-premise">${esc(L.premise || "Claude is working out how this really plays out: the stakes, the people and the numbers.")}</p>
+    <ol class="steps">${steps.map((s, i) => `<li class="${i < L.stage ? "done" : i === L.stage ? "active" : ""}">${esc(s)}</li>`).join("")}</ol>
+    <div class="load-actions"><button class="btn ghost" data-act="cancel-load">Cancel</button><small>Usually 20 to 60 seconds.</small></div>
+  </div></main>`;
+}
+function statHTML(s, g, withResult){
+  const r = withResult ? g.result : null;
+  const pct = v => clamp((v - s.min) / ((s.max - s.min) || 1) * 100, 0, 100);
+  const to = pct(s.value);
+  const from = (r && r.before && r.before[s.id] !== undefined && !r.animated) ? pct(r.before[s.id]) : to;
+  const h = health(s);
+  const cls = s.failAt === null ? (s.better === "lower" ? "" : "") : h < 0.2 ? "danger" : h < 0.45 ? "warn" : "";
+  const eff = r ? r.effects.filter(e => e.id === s.id).reduce((a, e) => a + e.delta, 0) : 0;
+  const good = (eff > 0) === (s.better === "higher");
+  const failTxt = s.failAt === null ? "" : ` Game over at ${fmt(s, s.failAt)}.`;
+  return `<div class="stat ${cls}" title="${esc(s.desc + failTxt)}">
+    <div class="st-top">${icon(s.icon)}<span class="st-name">${esc(s.name)}${s.better === "lower" ? "<em>lower is better</em>" : ""}</span><span class="st-val">${esc(fmt(s))}</span></div>
+    <div class="bar-row"><div class="bar" role="img" aria-label="${esc(`${s.name} ${fmt(s)} of ${fmt(s, s.max)}.${failTxt}`)}">${s.failAt !== null ? `<b class="fail" style="left:${pct(s.failAt)}%"></b>` : ""}<i style="width:${from}%" data-to="${to}"></i></div>${eff ? `<span class="delta ${good ? "up" : "down"}">${esc(fmtDelta(s, eff))}</span>` : ""}</div>
+  </div>`;
+}
+function goalHTML(g){
+  const r = g.result, from = (r && !r.animated) ? r.goalBefore : g.goal;
+  const gd = r ? r.goalDelta : 0;
+  return `<div class="goal-card">
+    <div class="goal-top"><span class="eyebrow">${icon("trophy")} Goal</span><span class="right">${gd ? `<span class="delta ${gd > 0 ? "up" : "down"}">${gd > 0 ? "+" : "−"}${Math.abs(gd)}%</span>` : ""}<b class="goal-pct">${g.goal}%</b></span></div>
+    <p>${esc(g.world.goal)}</p>
+    <div class="bar" role="img" aria-label="Goal progress ${g.goal} percent"><i style="width:${from}%" data-to="${g.goal}"></i></div>
+  </div>`;
+}
+function eventHTML(g){
+  const e = g.event, w = g.world;
+  const ch = e.speaker ? w.characters.find(c => c.name.toLowerCase() === e.speaker.toLowerCase()) : null;
+  return `<article class="event paper" id="event">
+    <div class="ev-top"><span class="ev-turn">${esc(w.timeUnit)} ${g.turn}</span>${e.speaker ? `<span class="speaker">${avatar(e.speaker)}<span><b>${esc(e.speaker)}</b>${ch ? `<small>${esc(ch.role)}</small>` : ""}</span></span>` : ""}</div>
+    <h2 class="ev-head">${esc(e.headline)}</h2>
+    <p class="ev-body">${esc(e.body)}</p>
+  </article>`;
+}
+function movesHTML(g){
+  if (g.pending){
+    const p = g.pending, d = p.dice;
+    const body = S.busy
+      ? `<p class="sim"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Simulating the consequences…</p>`
+      : S.error
+        ? `<p class="err" role="alert">${esc(S.error)}</p><div class="row-btns"><button class="btn" data-act="retry">Try again</button><button class="btn ghost" data-act="undo-move">Pick a different move</button></div>`
+        : `<div class="row-btns"><button class="btn" data-act="retry">Resolve this move</button><button class="btn ghost" data-act="undo-move">Pick a different move</button></div>`;
+    return `<div class="outcome t-${d.tier}"><div class="roll-row">${miniDie(d.total)}<div><span class="stamp t-${d.tier}">${TIERS[d.tier].label}</span><small class="roll-meta">${esc(rollMeta(d, p.move.risk))}</small></div></div><p class="chose">You chose: <b>${esc(p.move.label)}</b></p>${body}</div>`;
+  }
+  if (g.result){
+    const r = g.result, d = r.dice, final = g.status !== "playing";
+    const chips = r.effects.map(e => { const s = g.stats.find(x => x.id === e.id); if (!s) return ""; const good = (e.delta > 0) === (s.better === "higher"); return `<li class="fx ${good ? "up" : "down"}">${esc(s.name)} <b>${esc(fmtDelta(s, e.delta))}</b>${e.why ? `<small>${esc(e.why)}</small>` : ""}</li>`; }).join("");
+    const gchip = r.goalDelta ? `<li class="fx ${r.goalDelta > 0 ? "up" : "down"}">Goal <b>${r.goalDelta > 0 ? "+" : "−"}${Math.abs(r.goalDelta)}%</b></li>` : "";
+    return `<div class="outcome t-${d.tier}" id="outcome">
+      <div class="roll-row">${miniDie(d.total)}<div><span class="stamp t-${d.tier}">${TIERS[d.tier].label}</span><small class="roll-meta">${esc(rollMeta(d, r.move.risk))}</small></div></div>
+      <p class="chose">You chose: <b>${esc(r.move.label)}</b>${r.move.custom ? " (your own move)" : ""}</p>
+      <p class="o-text">${esc(r.outcome)}</p>
+      ${chips || gchip ? `<ul class="effects">${chips}${gchip}</ul>` : ""}
+      ${r.lesson ? `<p class="lesson"><b>Lesson</b>${esc(r.lesson)}</p>` : ""}
+      ${final ? `<p class="end-flag">${esc(resultOf(g).label)}: ${esc(g.endReason)}.</p>` : ""}
+      <button class="btn wide" data-act="next">${final ? "See your debrief →" : `Go to ${esc(g.world.timeUnit)} ${g.turn + 1} →`}</button>
+    </div>`;
+  }
+  const mod = DIFF[g.difficulty].mod;
+  const custom = g.demo ? "" : `<details class="custom" id="custom-d"${S.customOpen ? " open" : ""}>
+      <summary>Write your own move</summary>
+      <div class="custom-body">
+        <label for="custom" class="sr">Your move</label>
+        <textarea id="custom" rows="2" maxlength="240" placeholder="e.g. Call the investor and ask for two more weeks">${esc(S.customText)}</textarea>
+        <div class="custom-row">${segHTML("crisk", "How bold is it?", [["low","Low"],["medium","Medium"],["high","High"]], S.customRisk, true)}<button class="btn" data-act="custom-play">Play this move</button><small>Bolder moves have bigger effects and more extreme rolls. Moves your role couldn't make will fail.</small></div>
+      </div>
+    </details>`;
+  return `<div class="moves">
+    <p class="moves-label">Your move</p>
+    ${g.event.choices.map((c, i) => `<button class="choice" data-act="choose" data-i="${i}">
+      <span class="ckey" aria-hidden="true">${"ABCD"[i]}</span>
+      <span class="cmain"><b>${esc(c.label)}</b>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}
+        <span class="risk r-${c.risk}"><span class="pips" aria-hidden="true">${pips(c.risk)}</span>${RISK[c.risk].label}<span class="odds">· ${odds(c.risk, mod)}% chance of a good roll · ${RISK[c.risk].swing}</span></span>
+      </span></button>`).join("")}
+    ${custom}
+  </div>`;
+}
+function castHTML(w){
+  if (!w.characters.length) return "";
+  return `<h3 class="rail-h">Cast</h3><ul class="cast-list">${w.characters.map(c => `<li>${avatar(c.name)}<div><b>${esc(c.name)}</b> <span class="c-role">${esc(c.role)}</span><small>${esc(c.trait)}</small></div></li>`).join("")}</ul>`;
+}
+function logHTML(g){
+  const open = S.logOpen === null ? isWide() : S.logOpen;
+  const items = [...g.history].reverse().map(h => `<li class="t-${h.dice.tier}"><div class="lg-top"><span>${esc(g.world.timeUnit)} ${h.turn}</span><em>${TIERS[h.dice.tier].label}</em></div><p class="lg-move">${esc(h.move.label)}</p><p class="lg-out">${esc(h.outcome)}</p></li>`).join("");
+  return `<details class="log-d" id="log-d"${open ? " open" : ""}><summary>Decision log <span>${g.history.length}</span></summary>${items ? `<ol class="log-list">${items}</ol>` : `<p class="empty">Each move you make lands here, with its roll and result.</p>`}</details>`;
+}
+function playHTML(){
+  const g = S.game, w = g.world;
+  const brief = (g.turn === 1 && !g.history.length && !g.pending) ? `<div class="brief"><p><b>You are</b> ${esc(w.role.replace(/^you('re| are)\s+/i, ""))}</p><p>${esc(w.premise)}</p></div>` : "";
+  return `<header class="topbar">
+      <button class="mini-logo" data-act="home" aria-label="Back to the menu">DRY<span>RUN</span></button>
+      <div class="gt"><b>${esc(w.title)}</b><span>${esc(w.genre)} · ${DIFF[g.difficulty].label}${g.demo ? " · offline demo" : ""}</span></div>
+      <div class="turnpill"><span>${esc(w.timeUnit)}</span><b>${g.turn}<small>/${g.length}</small></b></div>
+    </header>
+    <main class="layout">
+      <section class="stats" aria-label="Stats">${g.stats.map(s => statHTML(s, g, true)).join("")}</section>
+      <section class="goal">${goalHTML(g)}</section>
+      <section class="stage">${brief}${eventHTML(g)}${movesHTML(g)}</section>
+      <section class="cast">${castHTML(w)}</section>
+      <section class="log">${logHTML(g)}</section>
+    </main>`;
+}
+function endHTML(){
+  const g = S.game, w = g.world, r = resultOf(g), sc = score(g), unit = w.timeUnit;
+  const db = g.debrief;
+  const moveAt = t => { const h = g.history.find(x => x.turn === t); return h ? h.move.label : ""; };
+  let dbHTML = "";
+  if (g.debriefState === "loading") dbHTML = `<section class="debrief paper"><p class="eyebrow ink">Coach's debrief</p><h2 class="db-verdict">Reviewing the tape…</h2><p class="sim" style="color:var(--ink-soft)"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Claude is going through each decision. This can take up to a minute.</p></section>`;
+  else if (g.debriefError) dbHTML = `<section class="debrief paper"><p class="err" role="alert">${esc(g.debriefError)}</p><div class="row-btns"><button class="btn" data-act="debrief-retry">Try the debrief again</button></div></section>`;
+  else if (db) dbHTML = `<section class="debrief paper">
+      <p class="eyebrow ink">Coach's debrief</p>
+      <h2 class="db-verdict">${esc(db.verdict)}</h2>
+      ${db.summary ? `<p class="db-summary">${esc(db.summary)}</p>` : ""}
+      ${db.pattern ? `<p class="db-pattern"><b>Your style</b>${esc(db.pattern)}</p>` : ""}
+      ${(db.bestMove || db.worstMove) ? `<div class="db-moves">
+        ${db.bestMove ? `<div class="db-move good"><span>Best move · ${esc(unit)} ${db.bestMove.turn}</span><b>${esc(moveAt(db.bestMove.turn))}</b><p>${esc(db.bestMove.why)}</p></div>` : ""}
+        ${db.worstMove ? `<div class="db-move bad"><span>Weakest move · ${esc(unit)} ${db.worstMove.turn}</span><b>${esc(moveAt(db.worstMove.turn))}</b><p>${esc(db.worstMove.why)}</p></div>` : ""}
+      </div>` : ""}
+      ${db.lessons.length ? `<h3>What this run teaches</h3><ul class="db-lessons">${db.lessons.map(l => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}
+      ${db.realWorldPlan.length ? `<div class="plan"><h3>If you face this for real</h3><ol>${db.realWorldPlan.map(l => `<li>${esc(l)}</li>`).join("")}</ol></div>` : ""}
+      ${db.tryNext ? `<p class="db-next"><b>Replay idea</b>${esc(db.tryNext)}</p>` : ""}
+    </section>`;
+  return `<main class="wrap end">
+    <div class="end-top"><button class="mini-logo" data-act="home" aria-label="Back to the menu">DRY<span>RUN</span></button><span class="eyebrow">${esc(w.genre)} · ${DIFF[g.difficulty].label}</span></div>
+    <section class="result-hero">
+      <span class="stamp big ${r.cls}">${esc(r.label)}</span>
+      <h1>${esc(w.title)}</h1>
+      <p>${esc(g.endReason)}.</p>
+    </section>
+    <section class="tiles">
+      <div class="tile"><span>Score</span><b>${sc}</b><small>out of 100</small></div>
+      <div class="tile"><span>Grade</span><b>${esc(db ? db.grade : gradeFor(sc))}</b><small>${db && !g.demo ? "from your coach" : "from your score"}</small></div>
+      <div class="tile"><span>Goal</span><b>${g.goal}%</b><small>progress</small></div>
+      <div class="tile"><span>Played</span><b>${g.history.length}</b><small>of ${g.length} ${esc(plural(unit.toLowerCase(), g.length))}</small></div>
+    </section>
+    <section class="stats" aria-label="Final stats">${g.stats.map(s => statHTML(s, g, false)).join("")}</section>
+    ${dbHTML}
+    <div class="end-actions">
+      <button class="btn" data-act="replay">Replay this world</button>
+      <button class="btn ghost" data-act="new">Build a new game</button>
+      ${db ? `<button class="btn ghost" data-act="copy">Copy the debrief</button>` : ""}
+      ${S.copied ? `<span class="copied" role="status">Copied</span>` : ""}
+    </div>
+  </main>`;
+}
+function render(){
+  const app = document.getElementById("app");
+  if (S.screen === "play" && !S.game) S.screen = "home";
+  if (S.screen === "end" && !S.game) S.screen = "home";
+  app.innerHTML = S.screen === "load" ? loadHTML() : S.screen === "play" ? playHTML() : S.screen === "end" ? endHTML() : homeHTML();
+  const bars = app.querySelectorAll(".bar i[data-to]");
+  const g = S.game;
+  if (g && g.result && !g.result.animated && S.screen === "play"){
+    requestAnimationFrame(() => requestAnimationFrame(() => { bars.forEach(b => b.style.width = b.dataset.to + "%"); }));
+    g.result.animated = true;
+  } else bars.forEach(b => b.style.width = b.dataset.to + "%");
+}
+
+/* ============ events ============ */
+function debriefText(){
+  const g = S.game, d = g.debrief, w = g.world;
+  const lines = [`${w.title}: ${resultOf(g).label} (score ${score(g)}/100, grade ${d.grade})`, w.goal, "", d.verdict, d.summary];
+  if (d.pattern) lines.push("", "Style: " + d.pattern);
+  if (d.lessons.length) lines.push("", "Lessons:", ...d.lessons.map(l => "- " + l));
+  if (d.realWorldPlan.length) lines.push("", "If you face this for real:", ...d.realWorldPlan.map((l, i) => `${i + 1}. ${l}`));
+  return lines.join("\n");
+}
+const ACTIONS = {
+  opt(b){
+    const k = b.dataset.k, v = b.dataset.v;
+    S.draft[k] = k === "length" ? Number(v) : v; saveSoon();
+    b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-checked", String(x === b)));
+  },
+  crisk(b){ S.customRisk = b.dataset.v; b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-checked", String(x === b))); },
+  cart(b){
+    const c = CARTS[Number(b.dataset.i)]; S.draft.request = c.prompt; S.error = null; saveSoon();
+    const t = document.getElementById("req"); if (t) t.value = c.prompt;
+    document.querySelectorAll(".cart").forEach(x => x.classList.toggle("sel", x === b));
+    const f = document.getElementById("builder"); if (f) f.scrollIntoView({block:"center", behavior: reduceMotion() ? "auto" : "smooth"});
+    const bt = document.getElementById("build"); if (bt) setTimeout(() => bt.focus({preventScroll:true}), 300);
+  },
+  demo(){
+    const w = {...DEMO_WORLD, firstEvent:DEMO_EVENTS[0]};
+    S.game = newGame(w, {demo:true, request:"Startup Manager (offline demo)", difficulty:S.draft.difficulty, length:DEMO_EVENTS.length, depth:"fast"});
+    S.screen = "play"; S.error = null; save(); render(); window.scrollTo(0, 0);
+  },
+  continue(){ const g = S.game; if (!g) return; S.screen = g.viewedEnd ? "end" : "play"; S.error = null; render(); window.scrollTo(0, 0); if (S.screen === "end" && !g.debrief && g.debriefState !== "loading") fetchDebrief(); },
+  "cancel-load"(){ if (ctl) ctl.abort(); },
+  choose(b){ const g = S.game; const c = g && g.event.choices[Number(b.dataset.i)]; if (c) playMove({...c, index:Number(b.dataset.i)}); },
+  "custom-play"(){
+    const t = document.getElementById("custom"), txt = str(t ? t.value : S.customText, 240);
+    if (!txt){ if (t) t.focus(); return; }
+    playMove({label:txt, detail:"", risk:S.customRisk, custom:true});
+  },
+  retry(){ resolvePending(null); },
+  "undo-move"(){ const g = S.game; if (!g || S.busy) return; g.pending = null; S.error = null; save(); render(); },
+  next(){ nextTurn(); },
+  home(){ if (S.busy && ctl) ctl.abort(); S.screen = "home"; S.error = null; render(); window.scrollTo(0, 0); },
+  replay(){
+    const g = S.game; if (!g) return;
+    S.game = newGame(g.world, {demo:g.demo, request:g.request, difficulty:g.difficulty, length:g.length, depth:g.depth});
+    S.screen = "play"; S.error = null; save(); render(); window.scrollTo(0, 0);
+  },
+  new(){ S.screen = "home"; S.error = null; render(); window.scrollTo(0, 0); const t = document.getElementById("req"); if (t) t.focus({preventScroll:true}); },
+  async copy(){
+    try { await navigator.clipboard.writeText(debriefText()); S.copied = true; } catch(e){ S.copied = false; }
+    render();
+  },
+  "debrief-retry"(){ fetchDebrief(); }
+};
+const app = document.getElementById("app");
+app.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
+  const f = ACTIONS[b.dataset.act]; if (f){ e.preventDefault(); f(b, e); }
+});
+app.addEventListener("submit", e => { e.preventDefault(); if (e.target.id === "builder") buildGame(); });
+app.addEventListener("input", e => {
+  if (e.target.id === "req"){ S.draft.request = e.target.value; saveSoon(); }
+  if (e.target.id === "custom") S.customText = e.target.value;
+});
+app.addEventListener("keydown", e => {
+  if (e.target.id === "req" && e.key === "Enter" && (e.metaKey || e.ctrlKey)){ e.preventDefault(); buildGame(); }
+});
+app.addEventListener("toggle", e => {
+  if (e.target.id === "custom-d") S.customOpen = e.target.open;
+  if (e.target.id === "log-d") S.logOpen = e.target.open;
+}, true);
+
+/* ============ boot ============ */
+function start(data){
+  const saved = (data && data.draft) ? data : loadSaved();
+  if (saved && saved.draft) S.draft = {...S.draft, ...saved.draft};
+  if (saved && saved.game && saved.game.world) S.game = saved.game;
+  if (S.game && S.game.result) S.game.result.animated = true;
+  S.screen = (data && (data.screen === "play" || data.screen === "end") && S.game) ? data.screen : "home";
+  render();
+}
+try { window.claude?.hot?.snapshot?.(() => ({game:S.game, draft:S.draft, screen:S.screen === "load" ? "home" : S.screen})); } catch(e){}
+if (window.claude?.hot?.ready) window.claude.hot.ready(start);
+else start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
